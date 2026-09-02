@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,6 +39,9 @@ import com.ea.connect.data.Friend
 fun PartyInviteScreen(friend: Friend, onBack: () -> Unit) {
     val viewModel: PartyInviteViewModel = viewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(friend.id) {
+        viewModel.reset()
+    }
     val game = remember(friend) { friend.game ?: "Battlefield 6" }
 
     Column(
@@ -109,7 +113,7 @@ fun PartyInviteScreen(friend: Friend, onBack: () -> Unit) {
             is PartyInviteState.Failure -> InviteUnavailableCard(
                 friend = friend,
                 details = current.details,
-                onRetry = viewModel::retry,
+                onRetry = { viewModel.invite(friend, game) },
                 onBackToFriends = onBack,
             )
 

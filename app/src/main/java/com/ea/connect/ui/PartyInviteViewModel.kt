@@ -8,6 +8,8 @@ import com.ea.connect.data.EaConnectApi
 import com.ea.connect.data.Friend
 import com.ea.connect.data.PartyInviteResult
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -36,31 +38,27 @@ class PartyInviteViewModel(private val api: EaConnectApi = EaConnectApi()) : Vie
 
     private val _state = MutableStateFlow<PartyInviteState>(PartyInviteState.Idle)
     val state: StateFlow<PartyInviteState> = _state
-    private var lastFriend: Friend? = null
-    private var lastGame: String = ""
+    private var job: Job? = null
 
     fun invite(friend: Friend, game: String) {
-        lastFriend = friend
-        lastGame = game
+        job?.cancel()
         _state.value = PartyInviteState.Loading
-        viewModelScope.launch {
+        job = viewModelScope.launch {
             _state.value = try {
                 val result = withContext(Dispatchers.IO) {
                     api.sendPartyInvite(DemoData.player.accountId, friend, game)
                 }
                 PartyInviteState.Sent(result)
             } catch (t: Throwable) {
+                if (t is CancellationException) throw t
                 PartyInviteState.Failure(SupportDetails.from(t))
             }
         }
     }
 
-    fun retry() {
-        val f = lastFriend ?: return
-        invite(f, lastGame)
-    }
-
     fun reset() {
+        job?.cancel()
+        job = null
         _state.value = PartyInviteState.Idle
     }
 }

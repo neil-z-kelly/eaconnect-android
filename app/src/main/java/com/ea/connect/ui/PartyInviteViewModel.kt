@@ -2,9 +2,9 @@ package com.ea.connect.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ea.connect.data.BackendException
 import com.ea.connect.data.DemoData
 import com.ea.connect.data.EaConnectApi
-import com.ea.connect.data.BackendException
 import com.ea.connect.data.Friend
 import com.ea.connect.data.PartyInviteResult
 import kotlinx.coroutines.Dispatchers

@@ -31,6 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -182,7 +184,7 @@ private fun InviteUnavailableCard(
                 .padding(vertical = 10.dp),
             color = EaColors.Blue,
             style = MaterialTheme.typography.labelLarge,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            textAlign = TextAlign.Center,
         )
         Row(
             Modifier
@@ -224,7 +226,7 @@ private fun InviteUnavailableCard(
                             value.orEmpty(),
                             color = EaColors.Muted,
                             fontSize = 11.sp,
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                            fontFamily = FontFamily.Monospace,
                         )
                     }
                 }

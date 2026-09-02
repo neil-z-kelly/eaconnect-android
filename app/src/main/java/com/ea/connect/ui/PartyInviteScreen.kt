@@ -3,7 +3,6 @@ package com.ea.connect.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,25 +18,26 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ea.connect.data.Friend
-import java.io.PrintWriter
-import java.io.StringWriter
 
 @Composable
 fun PartyInviteScreen(friend: Friend, onBack: () -> Unit) {
@@ -111,7 +111,12 @@ fun PartyInviteScreen(friend: Friend, onBack: () -> Unit) {
                 )
             }
 
-            is PartyInviteState.Failure -> RawErrorDump(current.error)
+            is PartyInviteState.Failure -> InviteUnavailableCard(
+                friend,
+                current.details,
+                onRetry = { viewModel.invite(friend, game) },
+                onBackToFriends = onBack,
+            )
 
             PartyInviteState.Idle -> Unit
         }
@@ -134,51 +139,98 @@ private fun PrimaryButton(label: String, enabled: Boolean, onClick: () -> Unit) 
     }
 }
 
-/**
- * Deliberately raw failure surface: exception class, message and stack trace straight on screen.
- */
 @Composable
-private fun RawErrorDump(error: Throwable) {
-    val stackTrace = remember(error) {
-        StringWriter().also { writer -> error.printStackTrace(PrintWriter(writer)) }.toString()
-    }
+private fun InviteUnavailableCard(
+    friend: Friend,
+    details: InviteFailure,
+    onRetry: () -> Unit,
+    onBackToFriends: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val supportDetails = listOf(
+        "Error" to details.errorName,
+        "Message" to details.message,
+        "Code" to details.code,
+        "Request ID" to details.requestId,
+        "Status" to details.statusCode?.toString(),
+    ).filter { (_, value) -> value != null }
+
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp)
-            .background(Color(0xFF2A0E0C), RoundedCornerShape(6.dp))
-            .border(1.dp, Color(0xFF7A1F19), RoundedCornerShape(6.dp))
-            .padding(10.dp),
+            .padding(horizontal = 20.dp)
+            .background(EaColors.Surface, RoundedCornerShape(16.dp))
+            .border(1.dp, EaColors.Outline, RoundedCornerShape(16.dp))
+            .padding(18.dp),
     ) {
         Text(
-            "Unhandled exception in PartyInviteViewModel.invite()",
-            color = Color(0xFFFF7A6B),
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            fontSize = 11.sp,
+            "Party invites are temporarily unavailable",
+            style = MaterialTheme.typography.titleMedium,
+            color = EaColors.White,
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            error.javaClass.name,
-            color = Color(0xFFFFD3CC),
-            fontFamily = FontFamily.Monospace,
-            fontSize = 11.sp,
+            "We couldn't reach the party service for ${friend.network.label} right now. Your friends are still here — give it another try in a moment.",
+            color = EaColors.Muted,
+            style = MaterialTheme.typography.bodyMedium,
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(18.dp))
+        PrimaryButton(label = "Retry", enabled = true) { onRetry() }
         Text(
-            error.message ?: "null",
-            color = Color(0xFFFFD3CC),
-            fontFamily = FontFamily.Monospace,
-            fontSize = 11.sp,
+            "Back to friends",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onBackToFriends)
+                .padding(vertical = 10.dp),
+            color = EaColors.Blue,
+            style = MaterialTheme.typography.labelLarge,
+            textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(8.dp))
-        Box(Modifier.horizontalScroll(rememberScrollState())) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                stackTrace,
-                color = Color(0xFFC9A9A4),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 9.sp,
+                "Support details",
+                modifier = Modifier.weight(1f),
+                color = EaColors.Muted,
+                style = MaterialTheme.typography.labelSmall,
             )
+            Icon(
+                if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                contentDescription = if (expanded) "Hide support details" else "Show support details",
+                tint = EaColors.Muted,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+        if (expanded) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(EaColors.SurfaceHigh, RoundedCornerShape(10.dp))
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                supportDetails.forEach { (label, value) ->
+                    Row(Modifier.fillMaxWidth()) {
+                        Text(
+                            "$label:",
+                            modifier = Modifier.width(84.dp),
+                            color = EaColors.Muted,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                        Text(
+                            value.orEmpty(),
+                            color = EaColors.Muted,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace,
+                        )
+                    }
+                }
+            }
         }
     }
 }

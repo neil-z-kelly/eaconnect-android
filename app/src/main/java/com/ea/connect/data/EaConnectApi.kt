@@ -5,12 +5,25 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class BackendException(val statusCode: Int, val rawBody: String, url: String) :
-    IOException("HTTP $statusCode from $url\n$rawBody")
+    IOException("HTTP $statusCode from $url\n$rawBody") {
+    val errorName: String?
+    val errorMessage: String?
+    val errorCode: String?
+    val requestId: String?
+    init {
+        val obj = try { JSONObject(rawBody) } catch (_: JSONException) { null }
+        errorName = obj?.optString("error")?.takeIf { it.isNotBlank() }
+        errorMessage = obj?.optString("message")?.takeIf { it.isNotBlank() }
+        errorCode = obj?.optString("code")?.takeIf { it.isNotBlank() }
+        requestId = obj?.optString("requestId")?.takeIf { it.isNotBlank() }
+    }
+}
 
 data class PartyInviteResult(
     val partyId: String,

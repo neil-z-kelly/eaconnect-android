@@ -2,6 +2,7 @@ package com.ea.connect.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ea.connect.data.BackendException
 import com.ea.connect.data.DemoData
 import com.ea.connect.data.EaConnectApi
 import com.ea.connect.data.Friend
@@ -16,7 +17,22 @@ sealed interface PartyInviteState {
     data object Idle : PartyInviteState
     data object Loading : PartyInviteState
     data class Sent(val result: PartyInviteResult) : PartyInviteState
-    data class Failure(val error: Throwable) : PartyInviteState
+    data class Failure(val details: InviteFailure) : PartyInviteState
+}
+
+data class InviteFailure(
+    val statusCode: Int?,
+    val errorName: String?,
+    val message: String?,
+    val code: String?,
+    val requestId: String?,
+) {
+    companion object {
+        fun from(t: Throwable): InviteFailure = when (t) {
+            is BackendException -> InviteFailure(t.statusCode, t.errorName, t.errorMessage, t.errorCode, t.requestId)
+            else -> InviteFailure(null, t.javaClass.simpleName, t.message, null, null)
+        }
+    }
 }
 
 class PartyInviteViewModel(private val api: EaConnectApi = EaConnectApi()) : ViewModel() {
@@ -33,7 +49,7 @@ class PartyInviteViewModel(private val api: EaConnectApi = EaConnectApi()) : Vie
                 }
                 PartyInviteState.Sent(result)
             } catch (t: Throwable) {
-                PartyInviteState.Failure(t)
+                PartyInviteState.Failure(InviteFailure.from(t))
             }
         }
     }

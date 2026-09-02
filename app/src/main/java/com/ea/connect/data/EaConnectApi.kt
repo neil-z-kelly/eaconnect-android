@@ -9,8 +9,8 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class BackendException(val statusCode: Int, val rawBody: String, url: String) :
-    IOException("HTTP $statusCode from $url\n$rawBody")
+class BackendException(val details: BackendError, url: String) :
+    IOException("HTTP ${details.statusCode} from $url: ${details.error ?: "unknown error"}")
 
 data class PartyInviteResult(
     val partyId: String,
@@ -53,7 +53,7 @@ class EaConnectApi(private val baseUrl: String = BuildConfig.BACKEND_BASE_URL) {
         client.newCall(request).execute().use { response ->
             val text = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                throw BackendException(response.code, text, url)
+                throw BackendException(BackendError.parse(response.code, text), url)
             }
             val obj = JSONObject(text)
             return PartyInviteResult(

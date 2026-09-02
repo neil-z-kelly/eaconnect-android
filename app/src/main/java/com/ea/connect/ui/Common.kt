@@ -1,5 +1,6 @@
 package com.ea.connect.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,9 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ea.connect.R
 import com.ea.connect.data.Friend
 import com.ea.connect.data.Network
 import com.ea.connect.data.Presence
@@ -31,6 +34,24 @@ private val AvatarPalettes = listOf(
     listOf(Color(0xFFC6884B), Color(0xFF553B1F)),
     listOf(Color(0xFF4B8FC6), Color(0xFF1F3E55)),
 )
+
+/** Screen header: the EA mark followed by the screen title. */
+@Composable
+fun EaScreenHeader(title: String, modifier: Modifier = Modifier) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        Image(
+            painter = painterResource(R.drawable.ic_ea_mark),
+            contentDescription = "EA",
+            modifier = Modifier.size(32.dp),
+        )
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineMedium,
+            color = EaColors.White,
+            modifier = Modifier.padding(start = 12.dp),
+        )
+    }
+}
 
 fun presenceColor(presence: Presence): Color = when (presence) {
     Presence.ONLINE -> EaColors.Online

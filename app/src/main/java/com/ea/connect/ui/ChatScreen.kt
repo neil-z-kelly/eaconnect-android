@@ -38,15 +38,10 @@ import com.ea.connect.data.Message
 fun InboxScreen(onOpen: (Friend) -> Unit) {
     LazyColumn(Modifier.fillMaxWidth()) {
         item {
-            Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp)) {
-                Text(
-                    "EA CONNECT",
-                    color = EaColors.Blue,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text("Chat", style = MaterialTheme.typography.headlineMedium, color = EaColors.White)
-            }
+            EaScreenHeader(
+                "Chat",
+                Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp),
+            )
         }
         items(DemoData.onlineFriends + DemoData.offlineFriends.take(2)) { friend ->
             Row(

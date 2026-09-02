@@ -68,15 +68,7 @@ private fun FriendsHeader() {
             .padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                "EA CONNECT",
-                color = EaColors.Blue,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text("Friends", style = MaterialTheme.typography.headlineMedium, color = EaColors.White)
-        }
+        EaScreenHeader("Friends", Modifier.weight(1f))
         Icon(Icons.Filled.Settings, null, tint = EaColors.Muted, modifier = Modifier.size(22.dp))
         Spacer(Modifier.width(14.dp))
         Avatar(DemoData.player.gamertag, 36)

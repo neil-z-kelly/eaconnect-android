@@ -24,15 +24,10 @@ import com.ea.connect.data.DemoData
 fun NotificationsScreen() {
     LazyColumn(Modifier.fillMaxWidth()) {
         item {
-            Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp)) {
-                Text(
-                    "EA CONNECT",
-                    color = EaColors.Blue,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text("Activity", style = MaterialTheme.typography.headlineMedium, color = EaColors.White)
-            }
+            EaScreenHeader(
+                "Activity",
+                Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp),
+            )
         }
         items(DemoData.notifications) { notification ->
             Row(

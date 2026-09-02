@@ -50,15 +50,10 @@ fun FindFriendsScreen() {
     }
 
     Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp)) {
-            Text(
-                "EA CONNECT",
-                color = EaColors.Blue,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text("Find Friends", style = MaterialTheme.typography.headlineMedium, color = EaColors.White)
-        }
+        EaScreenHeader(
+            "Find Friends",
+            Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp),
+        )
         Row(
             Modifier
                 .fillMaxWidth()

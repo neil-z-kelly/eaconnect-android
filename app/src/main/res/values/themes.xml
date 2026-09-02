@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.EAConnect" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#060B1F</item>
+        <item name="android:navigationBarColor">#060B1F</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

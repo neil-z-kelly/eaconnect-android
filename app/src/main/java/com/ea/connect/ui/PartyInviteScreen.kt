@@ -40,7 +40,7 @@ fun PartyInviteScreen(friend: Friend, onBack: () -> Unit) {
     val viewModel: PartyInviteViewModel = viewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(friend.id) {
-        viewModel.reset()
+        viewModel.bind(friend.id)
     }
     val game = remember(friend) { friend.game ?: "Battlefield 6" }
 

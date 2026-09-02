@@ -39,6 +39,14 @@ class PartyInviteViewModel(private val api: EaConnectApi = EaConnectApi()) : Vie
     private val _state = MutableStateFlow<PartyInviteState>(PartyInviteState.Idle)
     val state: StateFlow<PartyInviteState> = _state
     private var job: Job? = null
+    private var boundFriendId: String? = null
+
+    /** Binds the state to the displayed friend; clears state only when a different friend is shown. */
+    fun bind(friendId: String) {
+        if (boundFriendId == friendId) return
+        boundFriendId = friendId
+        reset()
+    }
 
     fun invite(friend: Friend, game: String) {
         job?.cancel()

@@ -9,8 +9,29 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class BackendException(val statusCode: Int, val rawBody: String, url: String) :
-    IOException("HTTP $statusCode from $url\n$rawBody")
+/** Error envelope returned by the backend: { success:false, error, message, code, requestId }. */
+data class BackendError(
+    val statusCode: Int,
+    val error: String,
+    val message: String,
+    val code: String,
+    val requestId: String?,
+)
+
+class BackendException(val error: BackendError, url: String) :
+    IOException("HTTP ${error.statusCode} from $url: ${error.code}")
+
+/** Tolerant of non-JSON/empty bodies (e.g. a proxy 502 HTML page). */
+fun parseBackendError(statusCode: Int, rawBody: String): BackendError {
+    val obj = runCatching { JSONObject(rawBody) }.getOrNull()
+    return BackendError(
+        statusCode = statusCode,
+        error = obj?.optString("error").orEmpty().ifBlank { "HttpError" },
+        message = obj?.optString("message").orEmpty().ifBlank { "The server returned HTTP $statusCode." },
+        code = obj?.optString("code").orEmpty().ifBlank { "HTTP_$statusCode" },
+        requestId = obj?.optString("requestId").orEmpty().ifBlank { null },
+    )
+}
 
 data class PartyInviteResult(
     val partyId: String,
@@ -53,7 +74,7 @@ class EaConnectApi(private val baseUrl: String = BuildConfig.BACKEND_BASE_URL) {
         client.newCall(request).execute().use { response ->
             val text = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                throw BackendException(response.code, text, url)
+                throw BackendException(parseBackendError(response.code, text), url)
             }
             val obj = JSONObject(text)
             return PartyInviteResult(

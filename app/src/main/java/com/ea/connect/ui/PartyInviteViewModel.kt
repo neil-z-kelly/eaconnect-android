@@ -16,7 +16,7 @@ sealed interface PartyInviteState {
     data object Idle : PartyInviteState
     data object Loading : PartyInviteState
     data class Sent(val result: PartyInviteResult) : PartyInviteState
-    data class Failure(val error: Throwable) : PartyInviteState
+    data class Failure(val failure: PartyInviteFailure) : PartyInviteState
 }
 
 class PartyInviteViewModel(private val api: EaConnectApi = EaConnectApi()) : ViewModel() {
@@ -33,7 +33,7 @@ class PartyInviteViewModel(private val api: EaConnectApi = EaConnectApi()) : Vie
                 }
                 PartyInviteState.Sent(result)
             } catch (t: Throwable) {
-                PartyInviteState.Failure(t)
+                PartyInviteState.Failure(PartyInviteFailure.from(t, friend.gamertag))
             }
         }
     }

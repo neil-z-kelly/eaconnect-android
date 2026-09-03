@@ -9,8 +9,31 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class BackendException(val statusCode: Int, val rawBody: String, url: String) :
-    IOException("HTTP $statusCode from $url\n$rawBody")
+class BackendException(
+    val statusCode: Int,
+    val error: String?,
+    val code: String?,
+    val backendMessage: String?,
+    val requestId: String?,
+    url: String,
+) : IOException("HTTP $statusCode from $url: ${error ?: "Error"}${backendMessage?.let { " — $it" } ?: ""}") {
+    companion object {
+        fun fromResponse(statusCode: Int, rawBody: String, url: String): BackendException {
+            val obj = runCatching { JSONObject(rawBody) }.getOrNull()
+            return BackendException(
+                statusCode,
+                obj?.stringOrNull("error"),
+                obj?.stringOrNull("code"),
+                obj?.stringOrNull("message"),
+                obj?.stringOrNull("requestId"),
+                url,
+            )
+        }
+
+        private fun JSONObject.stringOrNull(key: String): String? =
+            if (has(key) && !isNull(key)) getString(key).ifBlank { null } else null
+    }
+}
 
 data class PartyInviteResult(
     val partyId: String,
@@ -53,7 +76,7 @@ class EaConnectApi(private val baseUrl: String = BuildConfig.BACKEND_BASE_URL) {
         client.newCall(request).execute().use { response ->
             val text = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
-                throw BackendException(response.code, text, url)
+                throw BackendException.fromResponse(response.code, text, url)
             }
             val obj = JSONObject(text)
             return PartyInviteResult(
